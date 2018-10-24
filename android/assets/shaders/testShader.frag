@@ -24,7 +24,7 @@ void main(){
     gl_FragColor = mix(c1, c2, .5);
 
 #elif OPTION == 3
-    float a = clamp(texture2D(texture_0, tex_0).a, 0., 1.);
+    float a = 1. - clamp(texture2D(texture_0, tex_0).a, 0., 1.);
     gl_FragColor = vec4(0., a, 0., 1.);
 
 #else

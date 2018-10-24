@@ -1,12 +1,10 @@
 package com.mumumusuc;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Disposable;
@@ -58,16 +56,30 @@ public class TextureRenderer implements Disposable {
         shader.end();
     }
 
-    public void setTexture(int index, TextureRegion region) {
-        vertices[2 + 2 * index] = region.getU();
-        vertices[3 + 2 * index] = region.getV();
-        vertices[8 + 2 * index] = region.getU();
-        vertices[9 + 2 * index] = region.getV2();
-        vertices[14 + 2 * index] = region.getU2();
-        vertices[15 + 2 * index] = region.getV2();
-        vertices[20 + 2 * index] = region.getU2();
-        vertices[21 + 2 * index] = region.getV();
-        Texture texture = region.getTexture();
+    public void setRenderRoi(int index, RenderRoi roi) {
+        if (roi != null) {
+            float[] uv = roi.getUV();
+            vertices[2 + 2 * index] = uv[0];
+            vertices[3 + 2 * index] = uv[1];
+            vertices[8 + 2 * index] = uv[0];
+            vertices[9 + 2 * index] = uv[3];
+            vertices[14 + 2 * index] = uv[2];
+            vertices[15 + 2 * index] = uv[3];
+            vertices[20 + 2 * index] = uv[2];
+            vertices[21 + 2 * index] = uv[1];
+        } else {
+            vertices[2 + 2 * index] = 0;
+            vertices[3 + 2 * index] = 0;
+            vertices[8 + 2 * index] = 0;
+            vertices[9 + 2 * index] = 1;
+            vertices[14 + 2 * index] = 1;
+            vertices[15 + 2 * index] = 1;
+            vertices[20 + 2 * index] = 1;
+            vertices[21 + 2 * index] = 0;
+        }
+    }
+
+    public void bindTexture(int index, Texture texture) {
         int handle = texture.getTextureObjectHandle();
         texture.bind(handle);
         shader.setUniformi("texture_" + index, handle);
@@ -89,18 +101,19 @@ public class TextureRenderer implements Disposable {
         mesh.render(shader, GL20.GL_TRIANGLE_STRIP);
     }
 
-    public void render(TextureRegion region, float x, float y) {
-        setTexture(0, region);
-        render(x, y, region.getRegionWidth(), region.getRegionHeight());
+    public void render(RenderRoi roi, Texture tex, float x, float y) {
+        render(roi, tex, x, y, roi.getRoiWidth(), roi.getRoiHeight());
+    }
+
+    public void render(RenderRoi roi, Texture tex, float x, float y, float w, float h) {
+        setRenderRoi(0, roi);
+        bindTexture(0, tex);
+        render(x, y, w, h);
     }
 
     @Override
     public void dispose() {
         mesh.dispose();
     }
-/*
-    class TextureRegion{
 
-    }
-    */
 }

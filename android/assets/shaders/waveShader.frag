@@ -23,11 +23,11 @@ void main(){
     float d = 0.;
     if(point.z > 0.){                   // when touched
         float len = distance(point.xy, gl_FragCoord.xy);
-        d = smoothstep(4.5,.5, len) * -1.;
+        d = smoothstep(1.5,.5, len) * -1.;
     }else{                              // simulate rain drop
         float t = time * 2.;
         vec2 pos = fract(floor(t) * vec2(0.456665, 0.708618)) * size;
-        float amp = 1.5 - step(.05, fract(t));
+        float amp = 1. - step(.05, fract(t));
         d = -amp * smoothstep(2.5, .5, length(pos - gl_FragCoord.xy));
     }                                  // x1 <- (l0 + t0 + r0 + b0) / 2 - x0
     d += (p10 + p01 + p21 + p12) * .5 - p.x;
