@@ -23,27 +23,66 @@ public class Wave extends ApplicationAdapter {
     private static final String TEST_FRAGMENT_SHADER = "shaders/testShader.frag";
     private static final String BACKGROUND = "background1.jpg";
     private static final String MASK = "mask1.png";
-    private static final String TEST = "badlogic.jpg";
 
+
+    public enum Quality {
+        /**
+         * memory:82MB, 60FPS
+         */
+        LOW,
+        /**
+         * memory:90MB, 60FPS
+         */
+        MEDIUM,
+        /**
+         * memory:125MB, 60FPS
+         */
+        HIGH,
+        /**
+         * memory:170MB, 30FPS
+         */
+        ULTRA
+    }
+
+    private final int BUFF_W, BUFF_H;
     private float time = 0;
-    private int sWidth, sHeight, BUFF_W, BUFF_H;
+    private float[] touchPoint = new float[3];
+    private int sWidth, sHeight;
     private ShaderProgram simulateShader, renderShader, testShader;
-    private Texture background, mask, testTexture;
+    private Texture background, mask;
     private TextureRenderer mesh;
     private RendererBuffers buffers;
-    private float[] touchPoint = new float[3];
-    private RenderRoi testRegion;
     protected RenderRoi backgroundRegion;
     protected RenderRoi bufferRegion;
     protected float screenOffsetX, screenOffsetY;
 
+    public Wave() {
+        this(Quality.MEDIUM);
+    }
+
+    public Wave(Quality level) {
+        switch (level) {
+            case HIGH:
+                BUFF_W = 2048;
+                BUFF_H = 1024;
+                break;
+            case ULTRA:
+                BUFF_W = 2048;
+                BUFF_H = 2048;
+                break;
+            case LOW:
+                BUFF_W = 512;
+                BUFF_H = 512;
+                break;
+            case MEDIUM:
+            default:
+                BUFF_W = 1024;
+                BUFF_H = 512;
+        }
+    }
+
     @Override
     public void create() {
-        sWidth = Gdx.graphics.getWidth();
-        sHeight = Gdx.graphics.getHeight();
-        BUFF_W = 1024;
-        BUFF_H = 512;
-
         simulateShader = new ShaderProgram(
                 Gdx.files.internal(VERTEX_SHADER),
                 Gdx.files.internal(FRAGMENT_SHADER)
@@ -69,38 +108,9 @@ public class Wave extends ApplicationAdapter {
         mesh = new TextureRenderer();
         mask = new Texture(MASK);
         background = new Texture(BACKGROUND);
-        if (DEBUG) testTexture = new Texture(TEST);
+
         buffers = new RendererBuffers(3, BUFF_W, BUFF_H, 0, 1, 0);
-        //buffers.previous().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        //buffers.previous().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
-        //buffers.current().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        //buffers.current().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
-        //buffers.next().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        //buffers.next().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
-
-        if (DEBUG)
-            testRegion = makeRenderRoi(testTexture, testTexture.getWidth(), testTexture.getHeight(), true);
-        bufferRegion = makeRenderRoi(buffers.current().getColorBufferTexture(), sWidth, sHeight, false);
-        backgroundRegion = makeRenderRoi(background, sWidth, sHeight, true);
-
-        bufferRegion.save();
-        bufferRegion.scale(1, 1);
-        int[] roi = bufferRegion.getRoi();
-        bufferRegion.restore();
-        for (FrameBuffer buffer : buffers.getAll()) {
-            buffer.begin();
-            gl20.glClearColor(0, 0, 1, 1);
-            gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            mesh.setShader(testShader);
-            mesh.setProjection(0, 0, BUFF_W, BUFF_H);
-            mesh.begin();
-            mesh.setRenderRoi(0, backgroundRegion);
-            mesh.bindTexture(0, mask);
-            mesh.render(roi[0], roi[1], roi[2], roi[3]);
-            mesh.end();
-            buffer.end();
-        }
-        mask.dispose();
+        measureSize(graphics.getWidth(), graphics.getHeight());
     }
 
     @Override
@@ -111,6 +121,9 @@ public class Wave extends ApplicationAdapter {
         Texture texture0 = buffers.previous().getColorBufferTexture();
         Texture texture1 = buffers.current().getColorBufferTexture();
         Texture texture2 = buffers.next().getColorBufferTexture();
+        texture0.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        texture1.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        texture2.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         buffers.next().begin();
         mesh.setProjection(0, 0, BUFF_W, BUFF_H);
@@ -128,8 +141,6 @@ public class Wave extends ApplicationAdapter {
         mesh.end();
         buffers.next().end();
 
-        //bufferRegion.save();
-        //bufferRegion.scale(1, 1);
         gl20.glClearColor(1, 1, 1, 1);
         gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         gl20.glViewport(0, 0, sWidth, sHeight);
@@ -143,7 +154,6 @@ public class Wave extends ApplicationAdapter {
         mesh.bindTexture(1, background);
         mesh.render(screenOffsetX, screenOffsetY, bufferRegion.getRoiWidth(), bufferRegion.getRoiHeight());
         mesh.end();
-        //bufferRegion.restore();
 
         time += Gdx.graphics.getDeltaTime();
         if (time > 1000.f) time = 0;
@@ -156,7 +166,8 @@ public class Wave extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
-        //TODO: resize screen and rois
+        measureSize(width, height);
+        if (DEBUG) Gdx.app.log(TAG, "resize = " + width + ", " + height);
     }
 
     @Override
@@ -164,11 +175,34 @@ public class Wave extends ApplicationAdapter {
         simulateShader.dispose();
         renderShader.dispose();
         testShader.dispose();
-        if (testTexture != null) testTexture.dispose();
         mask.dispose();
         background.dispose();
         buffers.dispose();
         mesh.dispose();
+    }
+
+    protected void measureSize(int w, int h) {
+        sWidth = w;
+        sHeight = h;
+        bufferRegion = makeRenderRoi(buffers.current().getColorBufferTexture(), sWidth, sHeight, false);
+        backgroundRegion = makeRenderRoi(background, sWidth, sHeight, true);
+        bufferRegion.save();
+        bufferRegion.scale(1, 1);
+        int[] roi = bufferRegion.getRoi();
+        bufferRegion.restore();
+        for (FrameBuffer buffer : buffers.getAll()) {
+            buffer.begin();
+            gl20.glClearColor(0, 0, 0, 1);
+            gl20.glClear(GL20.GL_COLOR_BUFFER_BIT);
+            mesh.setShader(testShader);
+            mesh.setProjection(0, 0, BUFF_W, BUFF_H);
+            mesh.begin();
+            mesh.setRenderRoi(0, backgroundRegion);
+            mesh.bindTexture(0, mask);
+            mesh.render(roi[0], roi[1], roi[2], roi[3]);
+            mesh.end();
+            buffer.end();
+        }
     }
 
     private RenderRoi makeRenderRoi(Texture texture, float width, float height, boolean flipY) {
