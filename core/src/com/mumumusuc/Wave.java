@@ -5,8 +5,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.GL30;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -19,7 +17,7 @@ import static com.badlogic.gdx.Gdx.graphics;
 
 public class Wave extends ApplicationAdapter {
     private static final String TAG = "Wave";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String VERTEX_SHADER = "shaders/waveShader.vert";
     private static final String FRAGMENT_SHADER = "shaders/waveShader.frag";
     private static final String FRAGMENT_RENDER = "shaders/waveRender.frag";
@@ -38,9 +36,6 @@ public class Wave extends ApplicationAdapter {
     private RenderRoi backgroundRegion;
     private RenderRoi bufferRegion;
     private RenderRoi testRegion;
-
-    private BitmapFont bmpFont;
-    private SpriteBatch batch;
 
     @Override
     public void create() {
@@ -74,16 +69,17 @@ public class Wave extends ApplicationAdapter {
         mesh = new TextureRenderer();
         mask = new Texture(MASK);
         background = new Texture(BACKGROUND);
-        testTexture = new Texture(TEST);
+        if (DEBUG) testTexture = new Texture(TEST);
         buffers = new RendererBuffers(3, BUFF_W, BUFF_H, 0, 1, 0);
-        buffers.previous().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        buffers.previous().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
-        buffers.current().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        buffers.current().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
-        buffers.next().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        buffers.next().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
+        //buffers.previous().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        //buffers.previous().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
+        //buffers.current().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        //buffers.current().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
+        //buffers.next().getColorBufferTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        //buffers.next().getColorBufferTexture().setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
 
-        testRegion = makeRenderRoi(testTexture, testTexture.getWidth(), testTexture.getHeight(), true);
+        if (DEBUG)
+            testRegion = makeRenderRoi(testTexture, testTexture.getWidth(), testTexture.getHeight(), true);
         bufferRegion = makeRenderRoi(buffers.current().getColorBufferTexture(), sWidth, sHeight, false);
         backgroundRegion = makeRenderRoi(background, sWidth, sHeight, true);
 
@@ -104,9 +100,7 @@ public class Wave extends ApplicationAdapter {
             mesh.end();
             buffer.end();
         }
-
-        bmpFont = new BitmapFont();//Gdx.files.internal("font/font.fnt"),Gdx.files.internal("font/font.png"),false);
-        batch = new SpriteBatch();
+        mask.dispose();
     }
 
     @Override
@@ -137,7 +131,7 @@ public class Wave extends ApplicationAdapter {
         //bufferRegion.save();
         //bufferRegion.scale(1, 1);
         gl20.glClearColor(1, 1, 1, 1);
-        gl20.glClear(GL20.GL_COLOR_BUFFER_BIT|GL20.GL_DEPTH_BUFFER_BIT);
+        gl20.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
         gl20.glViewport(0, 0, sWidth, sHeight);
         mesh.setProjection(0, 0, sWidth, sHeight);
         mesh.setShader(renderShader);
@@ -152,6 +146,7 @@ public class Wave extends ApplicationAdapter {
         //bufferRegion.restore();
 
         time += Gdx.graphics.getDeltaTime();
+        if (time > 1000.f) time = 0;
         if (DEBUG) {
             gl20.glClearColor(0, 0, 0, 1);
             app.log(TAG, "FPS:" + graphics.getFramesPerSecond());
@@ -168,14 +163,11 @@ public class Wave extends ApplicationAdapter {
         simulateShader.dispose();
         renderShader.dispose();
         testShader.dispose();
-        testTexture.dispose();
+        if (testTexture != null) testTexture.dispose();
         mask.dispose();
         background.dispose();
         buffers.dispose();
         mesh.dispose();
-
-        bmpFont.dispose();
-        batch.dispose();
     }
 
     private RenderRoi makeRenderRoi(Texture texture, float width, float height, boolean flipY) {
