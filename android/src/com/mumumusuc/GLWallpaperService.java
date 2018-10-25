@@ -23,12 +23,14 @@ public class GLWallpaperService extends AndroidLiveWallpaperService {
     class AndroidWave extends Wave implements AndroidWallpaperListener {
         @Override
         protected void measureSize(int w, int h) {
-            super.measureSize(w * 2, h);
+            super.measureSize(w * 3, h);
         }
 
         @Override
         public void offsetChange(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset) {
-            screenOffsetX = -Gdx.graphics.getWidth() * xOffset;
+            //Gdx.app.log("wallpaper", "offsetX = " + xPixelOffset + ", xOffset = " + xOffset + " , xOffsetStep = " + xOffsetStep);
+            int step = yOffsetStep > 1 ? (int) yOffsetStep - 1 : 1;
+            screenOffsetX = -Gdx.graphics.getWidth() * (xOffset + step * 1.f);
         }
 
         @Override

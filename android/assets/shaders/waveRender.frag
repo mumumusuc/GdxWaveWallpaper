@@ -35,7 +35,7 @@ void main(){
     vec3 light = normalize(vec3(.2, -.5, .7));
     float diffuse = dot(grad, light);
     float spec = pow(max(0., -reflect(light, grad).z), 32.);
-    gl_FragColor = mix(c, vec4(.7, .8, 1., 1.), .25) * max(diffuse, 0.) + spec;
+    gl_FragColor = c * max(diffuse, 0.) + spec;
 
 #elif RENDERER == 2
     gl_FragColor = mix(
