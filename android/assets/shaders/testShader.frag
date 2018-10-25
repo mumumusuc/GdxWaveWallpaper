@@ -1,3 +1,9 @@
+#ifdef GL_ES
+#define LOWP lowp
+precision mediump float;
+#else
+#define LOWP
+#endif
 varying vec2 v_texCoord0;
 varying vec2 v_texCoord1;
 
