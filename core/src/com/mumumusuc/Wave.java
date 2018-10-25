@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.glutils.GLFrameBuffer;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.utils.Disposable;
 
-
 import static com.badlogic.gdx.Gdx.app;
 import static com.badlogic.gdx.Gdx.gl20;
 import static com.badlogic.gdx.Gdx.graphics;
@@ -33,9 +32,10 @@ public class Wave extends ApplicationAdapter {
     private TextureRenderer mesh;
     private RendererBuffers buffers;
     private float[] touchPoint = new float[3];
-    private RenderRoi backgroundRegion;
-    private RenderRoi bufferRegion;
     private RenderRoi testRegion;
+    protected RenderRoi backgroundRegion;
+    protected RenderRoi bufferRegion;
+    protected float screenOffsetX, screenOffsetY;
 
     @Override
     public void create() {
@@ -141,7 +141,7 @@ public class Wave extends ApplicationAdapter {
         mesh.setRenderRoi(1, backgroundRegion);
         mesh.bindTexture(0, texture2);
         mesh.bindTexture(1, background);
-        mesh.render(0, 0, bufferRegion.getRoiWidth(), bufferRegion.getRoiHeight());
+        mesh.render(screenOffsetX, screenOffsetY, bufferRegion.getRoiWidth(), bufferRegion.getRoiHeight());
         mesh.end();
         //bufferRegion.restore();
 
@@ -156,6 +156,7 @@ public class Wave extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         super.resize(width, height);
+        //TODO: resize screen and rois
     }
 
     @Override
@@ -189,7 +190,7 @@ public class Wave extends ApplicationAdapter {
             float s = bufferRegion.getScale()[0];
             int[] a = bufferRegion.getRoi();
             touchPoint[0] = (Gdx.input.getX() + a[0]) / s;
-            touchPoint[1] = (Gdx.graphics.getHeight() - Gdx.input.getY() - a[1]) / s;
+            touchPoint[1] = (Gdx.graphics.getHeight() - Gdx.input.getY() + a[1]) / s;
             touchPoint[2] = 1;
         } else {
             touchPoint[0] = 0;

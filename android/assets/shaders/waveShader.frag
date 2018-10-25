@@ -23,7 +23,7 @@ void main(){
     float d = 0.;
     if(point.z > 0.){                   // when touched
         float len = distance(point.xy, gl_FragCoord.xy);
-        d = smoothstep(1.5,.5, len) * -1.;
+        d = smoothstep(2.5,.5, len) * -1.;
     }else{                              // simulate rain drop
         float t = time * 2.;
         vec2 pos = fract(floor(t) * vec2(0.456665, 0.708618)) * size;
