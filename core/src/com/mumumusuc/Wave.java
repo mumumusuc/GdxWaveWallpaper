@@ -223,8 +223,8 @@ public class Wave extends ApplicationAdapter {
         if (Gdx.input.isTouched()) {
             float s = bufferRegion.getScale()[0];
             int[] a = bufferRegion.getRoi();
-            touchPoint[0] = (Gdx.input.getX() + a[0]) / s;
-            touchPoint[1] = (Gdx.graphics.getHeight() - Gdx.input.getY() + a[1]) / s;
+            touchPoint[0] = (Gdx.input.getX() + a[0] - screenOffsetX) / s;
+            touchPoint[1] = (Gdx.graphics.getHeight() - Gdx.input.getY() + a[1] -screenOffsetY) / s;
             touchPoint[2] = 1;
         } else {
             touchPoint[0] = 0;
