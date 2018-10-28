@@ -1,7 +1,7 @@
 # OpenGL(Libgdx)实现的2D水波纹效果
 ## 效果图
-TODO：
-
+<div align="center"><img src="https://github.com/mumumusuc/GdxWaveWallpaper/blob/master/sample/ezgif.com-video-to-gif.gif"/></div>
+<div align="center"><img src="https://github.com/mumumusuc/GdxWaveWallpaper/blob/master/sample/ezgif.com-gif-maker.gif"/></div>
 ## 原理与算法
 TODO：
 
